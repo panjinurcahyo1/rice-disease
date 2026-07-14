@@ -1,0 +1,74 @@
+{
+  "run_id": "resnet18_finetune2_20260623_225425",
+  "test_loss": 0.4090149825527554,
+  "test_accuracy_no_tta": 0.9523809523809523,
+  "test_accuracy_tta": 0.9547619047619048,
+  "best_val_accuracy": 0.9593301435406698,
+  "best_epoch": 31,
+  "best_source": "ema",
+  "use_tta": true,
+  "tta_mode": "multi_scale",
+  "classification_report": {
+    "Bacterial Leaf Blight": {
+      "precision": 1.0,
+      "recall": 0.9824561403508771,
+      "f1-score": 0.9911504424778761,
+      "support": 57.0
+    },
+    "Brown Spot": {
+      "precision": 0.8571428571428571,
+      "recall": 0.9473684210526315,
+      "f1-score": 0.9,
+      "support": 57.0
+    },
+    "Healthy Rice Leaf": {
+      "precision": 0.9672131147540983,
+      "recall": 1.0,
+      "f1-score": 0.9833333333333333,
+      "support": 59.0
+    },
+    "Leaf Blast": {
+      "precision": 0.9361702127659575,
+      "recall": 0.8148148148148148,
+      "f1-score": 0.8712871287128713,
+      "support": 54.0
+    },
+    "Leaf Scald": {
+      "precision": 1.0,
+      "recall": 0.9827586206896551,
+      "f1-score": 0.991304347826087,
+      "support": 58.0
+    },
+    "Narrow Brown Leaf Spot": {
+      "precision": 0.9830508474576272,
+      "recall": 1.0,
+      "f1-score": 0.9914529914529915,
+      "support": 58.0
+    },
+    "Rice Hispa": {
+      "precision": 0.9166666666666666,
+      "recall": 0.9705882352941176,
+      "f1-score": 0.9428571428571428,
+      "support": 34.0
+    },
+    "Sheath Blight": {
+      "precision": 0.975609756097561,
+      "recall": 0.9302325581395349,
+      "f1-score": 0.9523809523809523,
+      "support": 43.0
+    },
+    "accuracy": 0.9547619047619048,
+    "macro avg": {
+      "precision": 0.9544816818605959,
+      "recall": 0.9535273487927038,
+      "f1-score": 0.9529707923801568,
+      "support": 420.0
+    },
+    "weighted avg": {
+      "precision": 0.9562160558295251,
+      "recall": 0.9547619047619048,
+      "f1-score": 0.9544552293478834,
+      "support": 420.0
+    }
+  }
+}

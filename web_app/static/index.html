@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rice Leaf Disease Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark   : #0f3d1f;
+      --green-mid    : #1e6b38;
+      --green-light  : #3a9e5f;
+      --green-pale   : #eaf6ee;
+      --green-glass  : rgba(30, 107, 56, 0.10);
+      --accent       : #e8a020;
+      --accent-light : #fef3dc;
+      --danger       : #d94f4f;
+      --text-dark    : #111a14;
+      --text-mid     : #3d5445;
+      --text-light   : #7a9882;
+      --card-bg      : #ffffff;
+      --bg           : #f2f7f3;
+      --border       : #cfe3d5;
+      --radius       : 16px;
+      --shadow       : 0 4px 24px rgba(15,61,31,.09);
+      --shadow-sm    : 0 2px 10px rgba(15,61,31,.06);
+      --transition   : .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Subtle background ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 95% 5%, rgba(58,158,95,.08) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 0% 85%, rgba(15,61,31,.06) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ─────────────────────────── */
+    header {
+      position: relative;
+      z-index: 10;
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 70%, #25954e 100%);
+      color: #fff;
+      padding: 0 36px;
+      box-shadow: 0 2px 16px rgba(0,0,0,.18);
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 0;
+      flex: 1;
+    }
+
+    .logo-wrap {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,.13);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,.18);
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -.2px;
+      line-height: 1.2;
+    }
+    header .subtitle {
+      font-size: .74rem;
+      opacity: .62;
+      margin-top: 2px;
+      font-weight: 300;
+      letter-spacing: .04em;
+    }
+
+    /* ── Nav tabs ──────────── */
+    nav {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .nav-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,.6);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 10px 10px 0 0;
+      transition: background var(--transition), color var(--transition);
+      margin-bottom: -1px;
+      white-space: nowrap;
+    }
+    .nav-tab:hover { background: rgba(255,255,255,.09); color: #fff; }
+    .nav-tab.active {
+      background: var(--bg);
+      color: var(--green-dark);
+      font-weight: 600;
+    }
+    .nav-tab .tab-icon { font-size: .95rem; }
+
+    /* ── Page container ─── */
+    .page { display: none; position: relative; z-index: 1; animation: fadeIn .28s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Classifier page ─── */
+    #page-classifier main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1060px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+
+    /* ── Cards ─── */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 26px;
+      border: 1px solid var(--border);
+    }
+    .card h2 {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card h2::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Upload zone ─── */
+    #drop-zone {
+      border: 2px dashed var(--green-light);
+      border-radius: var(--radius);
+      background: var(--green-pale);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    #drop-zone:hover, #drop-zone.dragover {
+      background: #d4ecdc;
+      border-color: var(--green-dark);
+      box-shadow: 0 0 0 3px rgba(58,158,95,.10);
+    }
+    #drop-zone .icon  { font-size: 2.6rem; opacity: .8; }
+    #drop-zone .label { color: var(--text-mid); font-size: .9rem; text-align: center; line-height: 1.5; }
+    #drop-zone .sub   { color: var(--text-light); font-size: .75rem; }
+    #file-input { display: none; }
+
+    #preview {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      max-height: 320px;
+      display: none;
+      border-radius: calc(var(--radius) - 4px);
+    }
+
+    /* ── Buttons ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: .855rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: filter var(--transition), transform var(--transition), box-shadow var(--transition);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn:disabled { opacity: .42; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(15,61,31,.22);
+    }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+    .btn-secondary {
+      background: var(--green-pale);
+      color: var(--green-dark);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover:not(:disabled) { background: #d4ecdc; }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Spinner ─── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    #classify-btn.loading .spinner { display: block; }
+    #classify-btn.loading .btn-text { display: none; }
+
+    /* ── Result card ─── */
+    #result-card { display: flex; flex-direction: column; }
+    #empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text-light);
+      min-height: 200px;
+    }
+    #empty-state .icon { font-size: 2.4rem; opacity: .7; }
+    #empty-state p { font-size: .855rem; text-align: center; line-height: 1.6; }
+
+    #top-pred {
+      display: none;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      color: #fff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    #top-pred::after {
+      content: '🌾';
+      position: absolute;
+      right: 16px; top: 50%;
+      transform: translateY(-50%);
+      font-size: 2.6rem;
+      opacity: .12;
+    }
+    #top-pred .label   { font-size: .72rem; opacity: .68; text-transform: uppercase; letter-spacing: .1em; }
+    #top-pred .disease { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; margin: 4px 0 3px; }
+    #top-pred .conf    { font-size: .84rem; opacity: .82; }
+
+    #bars-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .bar-name  { font-size: .82rem; font-weight: 500; color: var(--text-dark); }
+    .bar-pct   { font-size: .78rem; font-weight: 600; color: var(--text-mid); }
+    .bar-track {
+      height: 6px;
+      background: var(--green-pale);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--green-light), var(--green-dark));
+      transition: width .6s cubic-bezier(.4,0,.2,1);
+    }
+    .bar-item.top .bar-fill { background: linear-gradient(90deg, var(--accent), #b07800); }
+    .bar-item.top .bar-name { font-weight: 700; color: var(--green-dark); }
+
+    #error-box {
+      display: none;
+      background: #fff0f0;
+      border: 1px solid #f0c0c0;
+      color: var(--danger);
+      border-radius: 9px;
+      padding: 10px 14px;
+      font-size: .83rem;
+      margin-top: 12px;
+    }
+
+    /* ══════════════════════════════════════
+       ABOUT PAGE — simplified
+    ══════════════════════════════════════ */
+    #page-about {
+      max-width: 960px;
+      margin: 36px auto;
+      padding: 0 24px 40px;
+    }
+
+    /* Hero — slim */
+    .about-hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, #1b7a3c 60%, #2d9a52 100%);
+      border-radius: 20px;
+      padding: 40px 40px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 28px rgba(15,61,31,.22);
+    }
+    .about-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 85% 30%, rgba(255,255,255,.07) 0%, transparent 45%);
+    }
+    .about-hero-text { position: relative; z-index: 1; }
+    .about-hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.22);
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .about-hero h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .about-hero p {
+      font-size: .92rem;
+      opacity: .78;
+      line-height: 1.65;
+      max-width: 480px;
+      font-weight: 300;
+    }
+    .hero-emoji {
+      font-size: 5rem;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 6px 16px rgba(0,0,0,.22));
+      animation: float 4s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Section title */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .section-title-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      background: var(--green-pale);
+      flex-shrink: 0;
+    }
+    .section-title h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .section-title .section-sub {
+      font-size: .75rem;
+      color: var(--text-light);
+      margin-top: 1px;
+    }
+
+    /* ── Disease grid (main focus) ─── */
+    .disease-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 24px;
+    }
+    .disease-section-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .disease-section-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .disease-section-header .section-sub {
+      font-size: .74rem;
+      color: var(--text-light);
+      margin-top: 1px;
+    }
+
+    .disease-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .disease-item {
+      padding: 18px 20px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    .disease-item:nth-child(4n) { border-right: none; }
+    .disease-item:nth-last-child(-n+4) { border-bottom: none; }
+    .disease-item:hover { background: var(--green-pale); }
+    .disease-icon { font-size: 1.4rem; margin-bottom: 7px; }
+    .disease-name { font-size: .855rem; font-weight: 700; color: var(--green-dark); margin-bottom: 2px; }
+    .disease-latin { font-size: .73rem; color: var(--text-light); font-style: italic; margin-bottom: 7px; }
+    .disease-desc { font-size: .79rem; color: var(--text-mid); line-height: 1.55; }
+
+    /* ── Two-col info row ─── */
+    .about-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .info-card-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .info-card-icon {
+      width: 36px; height: 36px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .ic-green { background: var(--green-pale); }
+    .ic-amber { background: var(--accent-light); }
+    .info-card-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+    .info-card-header .card-sub {
+      font-size: .74rem;
+      color: var(--text-light);
+      margin-top: 1px;
+    }
+    .info-card-body { padding: 16px 20px; }
+
+    /* Taxonomy table */
+    .taxonomy-table { width: 100%; border-collapse: collapse; }
+    .taxonomy-table tr { border-bottom: 1px solid var(--border); }
+    .taxonomy-table tr:last-child { border-bottom: none; }
+    .taxonomy-table tr:hover { background: var(--green-pale); }
+    .taxonomy-table td { padding: 8px 0; font-size: .845rem; line-height: 1.5; }
+    .taxonomy-table td:first-child {
+      font-weight: 600;
+      color: var(--text-mid);
+      width: 38%;
+      font-size: .77rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .taxonomy-table td:last-child { color: var(--text-dark); }
+
+    /* Growth timeline */
+    .timeline { display: flex; flex-direction: column; }
+    .timeline-item {
+      display: flex;
+      gap: 14px;
+      padding-bottom: 14px;
+    }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item:last-child .tl-line { display: none; }
+    .tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+    .tl-dot {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--green-pale);
+      border: 2px solid var(--green-light);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .85rem;
+    }
+    .tl-line {
+      width: 2px;
+      flex: 1;
+      background: linear-gradient(to bottom, var(--green-light), transparent);
+      margin-top: 3px;
+      min-height: 12px;
+    }
+    .tl-content { padding-top: 3px; }
+    .tl-title { font-size: .845rem; font-weight: 600; color: var(--green-dark); }
+    .tl-desc { font-size: .78rem; color: var(--text-mid); margin-top: 2px; line-height: 1.5; }
+    .tl-days {
+      display: inline-block;
+      background: var(--green-pale);
+      color: var(--green-mid);
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 99px;
+      margin-top: 3px;
+    }
+
+    /* ── Footer ─── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 20px 24px;
+      font-size: .77rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      background: var(--card-bg);
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    footer .footer-sep { opacity: .35; }
+    footer .footer-credit {
+      font-weight: 600;
+      color: var(--green-mid);
+    }
+
+    /* ── Responsive ─── */
+    @media (max-width: 860px) {
+      .disease-grid { grid-template-columns: repeat(2, 1fr); }
+      .disease-item:nth-child(4n) { border-right: 1px solid var(--border); }
+      .disease-item:nth-child(2n) { border-right: none; }
+      .disease-item:nth-last-child(-n+2) { border-bottom: none; }
+      .disease-item:nth-last-child(-n+4):not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--border); }
+    }
+    @media (max-width: 720px) {
+      header { padding: 0 18px; }
+      header h1 { font-size: 1.1rem; }
+      .header-brand { padding: 16px 0; }
+      .nav-tab { padding: 8px 13px; font-size: .8rem; }
+      #page-classifier main { grid-template-columns: 1fr; padding: 0 16px; margin: 22px auto; }
+      #page-about { padding: 0 16px 32px; margin: 24px auto; }
+      .about-hero { padding: 30px 26px; }
+      .about-hero h2 { font-size: 1.8rem; }
+      .hero-emoji { display: none; }
+      .about-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .disease-grid { grid-template-columns: 1fr; }
+      .disease-item { border-right: none !important; }
+      .disease-item:not(:last-child) { border-bottom: 1px solid var(--border) !important; }
+      footer { flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+  <div class="header-brand">
+    <div class="logo-wrap">🌾</div>
+    <div>
+      <h1>Paddy Care</h1>
+      <div class="subtitle">Deteksi Penyakit Daun Padi</div>
+    </div>
+  </div>
+  <nav>
+    <button class="nav-tab active" data-page="page-classifier" onclick="switchPage('page-classifier', this)">
+      <span class="tab-icon">🔬</span> Ayo Deteksi
+    </button>
+    <button class="nav-tab" data-page="page-about" onclick="switchPage('page-about', this)">
+      <span class="tab-icon">📚</span> Tentang Padi
+    </button>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════════════
+     PAGE: CLASSIFIER
+════════════════════════════════════════ -->
+<div class="page active" id="page-classifier">
+  <main>
+
+    <!-- Left: Upload -->
+    <div class="card">
+      <h2>Upload Gambar Daun</h2>
+
+      <div id="drop-zone" role="button" tabindex="0" aria-label="Drop or click to upload image">
+        <div id="drop-hint">
+          <div class="icon">📷</div>
+          <div class="label">Drag &amp; drop gambar di sini<br>atau <strong>klik untuk browse</strong></div>
+          <div class="sub">JPG, PNG, WEBP — maks. 10 MB</div>
+        </div>
+        <img id="preview" alt="Selected leaf image" />
+      </div>
+
+      <input type="file" id="file-input" accept="image/*" />
+      <div id="error-box"></div>
+
+      <div class="action-row">
+        <button class="btn btn-primary" id="classify-btn" disabled>
+          <span class="spinner"></span>
+          <span class="btn-text">🔍 Klasifikasi</span>
+        </button>
+        <button class="btn btn-secondary" id="clear-btn">✕ Clear</button>
+      </div>
+    </div>
+
+    <!-- Right: Results -->
+    <div class="card" id="result-card">
+      <h2>Hasil Prediksi</h2>
+
+      <div id="empty-state">
+        <div class="icon">🌿</div>
+        <p>Upload gambar daun dan klik<br><strong>Klasifikasi</strong> untuk melihat hasil</p>
+      </div>
+
+      <div id="top-pred">
+        <div class="label">Penyakit Terdeteksi</div>
+        <div class="disease" id="top-name">—</div>
+        <div class="conf"   id="top-conf">—</div>
+      </div>
+
+      <ul id="bars-list"></ul>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE: TENTANG PADI
+════════════════════════════════════════ -->
+<div class="page" id="page-about">
+
+  <!-- Hero -->
+  <div class="about-hero">
+    <div class="about-hero-text">
+      <div class="about-hero-badge">🌾 Ilmu Pertanian Padi</div>
+      <h2>Mengenal Padi<br>Lebih Dalam</h2>
+      <p>Padi (<em>Oryza sativa</em>) adalah tanaman pangan utama dunia yang menjadi sumber karbohidrat bagi lebih dari separuh populasi global — terutama di Asia.</p>
+    </div>
+    <div class="hero-emoji">🌾</div>
+  </div>
+
+  <!-- 8 Penyakit — MAIN FOCUS -->
+  <div class="disease-section">
+    <div class="disease-section-header">
+      <div class="info-card-icon ic-green">🦠</div>
+      <div>
+        <h3>8 Penyakit Daun Padi yang Diklasifikasikan</h3>
+        <div class="section-sub">Penyakit yang dideteksi oleh model ResNet-18 dalam aplikasi ini</div>
+      </div>
+    </div>
+    <div class="disease-grid">
+      <div class="disease-item">
+        <div class="disease-icon">🟤</div>
+        <div class="disease-name">Bacterial Leaf Blight</div>
+        <div class="disease-latin">Xanthomonas oryzae pv. oryzae</div>
+        <div class="disease-desc">Menyebabkan tepi daun menguning dan mengering dari atas ke bawah. Menyerang aktif saat fase vegetatif.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🟡</div>
+        <div class="disease-name">Brown Spot</div>
+        <div class="disease-latin">Cochliobolus miyabeanus</div>
+        <div class="disease-desc">Bercak cokelat oval di daun, sering muncul pada tanaman yang kekurangan hara terutama kalium.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🔴</div>
+        <div class="disease-name">Leaf Blast</div>
+        <div class="disease-latin">Magnaporthe oryzae</div>
+        <div class="disease-desc">Bercak berbentuk belah ketupat dengan pusat abu-abu, salah satu penyakit paling merusak pada padi.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🟠</div>
+        <div class="disease-name">Leaf Scald</div>
+        <div class="disease-latin">Microdochium oryzae</div>
+        <div class="disease-desc">Bercak tidak beraturan berwarna cokelat kekuningan di ujung daun, menyebabkan daun tampak "terbakar".</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🟤</div>
+        <div class="disease-name">Narrow Brown Leaf Spot</div>
+        <div class="disease-latin">Cercospora janseana</div>
+        <div class="disease-desc">Bercak cokelat sempit memanjang di daun, menyebar cepat di kondisi lembab dan melemahkan pertumbuhan tanaman.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🟣</div>
+        <div class="disease-name">Rice Hispa</div>
+        <div class="disease-latin">Dicladispa armigera</div>
+        <div class="disease-desc">Kerusakan akibat hama — larva menggerogoti jaringan daun dari dalam hingga tampak garis putih memanjang.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">⚪</div>
+        <div class="disease-name">Sheath Blight</div>
+        <div class="disease-latin">Rhizoctonia solani</div>
+        <div class="disease-desc">Bercak tidak beraturan pada pelepah daun, menyebar dari bawah ke atas di kondisi lembab dan padat tanam.</div>
+      </div>
+      <div class="disease-item">
+        <div class="disease-icon">🟢</div>
+        <div class="disease-name">Healthy Rice Leaf</div>
+        <div class="disease-latin">Normal / Sehat</div>
+        <div class="disease-desc">Daun hijau cerah tanpa gejala penyakit. Menandakan tanaman tumbuh dalam kondisi optimal.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info row: Taksonomi + Fase Pertumbuhan -->
+  <div class="about-row">
+
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon ic-green">🔬</div>
+        <div>
+          <h3>Taksonomi Ilmiah</h3>
+          <div class="card-sub">Klasifikasi botani padi</div>
+        </div>
+      </div>
+      <div class="info-card-body">
+        <table class="taxonomy-table">
+          <tr><td>Kingdom</td><td>Plantae</td></tr>
+          <tr><td>Divisi</td><td>Magnoliophyta</td></tr>
+          <tr><td>Kelas</td><td>Liliopsida</td></tr>
+          <tr><td>Ordo</td><td>Poales</td></tr>
+          <tr><td>Famili</td><td>Poaceae</td></tr>
+          <tr><td>Genus</td><td><em>Oryza</em></td></tr>
+          <tr><td>Spesies</td><td><em>O. sativa</em> (Asia) · <em>O. glaberrima</em> (Afrika)</td></tr>
+          <tr><td>Kromosom</td><td>2n = 24 kromosom</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon ic-amber">🌱</div>
+        <div>
+          <h3>Fase Pertumbuhan</h3>
+          <div class="card-sub">Dari semai hingga panen</div>
+        </div>
+      </div>
+      <div class="info-card-body">
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="tl-left"><div class="tl-dot">🌰</div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-title">Fase Semai (Germination)</div>
+              <div class="tl-desc">Benih berkecambah dan akar kecil (radikula) mulai tumbuh keluar.</div>
+              <div class="tl-days">0–7 hari</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-left"><div class="tl-dot">🌿</div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-title">Fase Vegetatif</div>
+              <div class="tl-desc">Tanaman membentuk daun, batang, dan anakan. Berlangsung aktif di sawah.</div>
+              <div class="tl-days">7–55 hari</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-left"><div class="tl-dot">🌾</div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-title">Fase Reproduktif</div>
+              <div class="tl-desc">Muncul malai (panicle), proses pembuahan, dan pengisian bulir gabah.</div>
+              <div class="tl-days">55–95 hari</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="tl-left"><div class="tl-dot">🌻</div><div class="tl-line"></div></div>
+            <div class="tl-content">
+              <div class="tl-title">Fase Pematangan</div>
+              <div class="tl-desc">Bulir menguning dan mengeras — siap untuk dipanen.</div>
+              <div class="tl-days">95–120 hari</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<!-- end page-about -->
+
+<!-- ── Footer ── -->
+<footer>
+  <span>🌾 Paddy Care</span>
+  <span class="footer-sep">·</span>
+  <span>Deteksi Penyakit Daun Padi</span>
+  <span class="footer-sep">·</span>
+  <span>Dibuat oleh <span class="footer-credit">Muhammad Panji</span></span>
+</footer>
+
+<script>
+  // ── Page navigation ── //
+  function switchPage(pageId, tabEl) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    tabEl.classList.add('active');
+  }
+
+  // ── DOM refs ── //
+  const dropZone     = document.getElementById('drop-zone');
+  const fileInput    = document.getElementById('file-input');
+  const preview      = document.getElementById('preview');
+  const dropHint     = document.getElementById('drop-hint');
+  const classifyBtn  = document.getElementById('classify-btn');
+  const clearBtn     = document.getElementById('clear-btn');
+  const errorBox     = document.getElementById('error-box');
+  const emptyState   = document.getElementById('empty-state');
+  const topPred      = document.getElementById('top-pred');
+  const topName      = document.getElementById('top-name');
+  const topConf      = document.getElementById('top-conf');
+  const barsList     = document.getElementById('bars-list');
+
+  let selectedFile = null;
+
+  // ── Drag & drop ── //
+  dropZone.addEventListener('click',    () => fileInput.click());
+  dropZone.addEventListener('keydown',  e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave',() => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) setFile(file);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+  });
+
+  // ── File helpers ── //
+  function setFile(file) {
+    if (!file.type.startsWith('image/')) { showError('Please select an image file.'); return; }
+    if (file.size > 10 * 1024 * 1024)  { showError('File too large (max 10 MB).'); return; }
+
+    selectedFile = file;
+    hideError();
+    resetResults();
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      dropHint.style.display = 'none';
+      classifyBtn.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearFile() {
+    selectedFile = null;
+    fileInput.value = '';
+    preview.src = '';
+    preview.style.display  = 'none';
+    dropHint.style.display = '';
+    classifyBtn.disabled   = true;
+    classifyBtn.classList.remove('loading');
+    hideError();
+    resetResults();
+  }
+
+  clearBtn.addEventListener('click', clearFile);
+
+  // ── Classify ── //
+  classifyBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    classifyBtn.classList.add('loading');
+    classifyBtn.disabled = true;
+    hideError();
+    resetResults();
+
+    try {
+      const form = new FormData();
+      form.append('file', selectedFile);
+
+      const res = await fetch('/predict', { method: 'POST', body: form });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Server error.' }));
+        throw new Error(err.detail || 'Prediction failed.');
+      }
+      const data = await res.json();
+      showResults(data);
+    } catch (e) {
+      showError(e.message);
+    } finally {
+      classifyBtn.classList.remove('loading');
+      classifyBtn.disabled = false;
+    }
+  });
+
+  // ── Results rendering ── //
+  function showResults(data) {
+    emptyState.style.display = 'none';
+
+    topName.textContent = data.top_class;
+    topConf.textContent = `Confidence: ${(data.top_prob * 100).toFixed(1)}%`;
+    topPred.style.display = 'block';
+
+    barsList.innerHTML = '';
+    data.predictions.forEach((p, i) => {
+      const pct = (p.probability * 100).toFixed(1);
+      const li  = document.createElement('li');
+      li.className = 'bar-item' + (i === 0 ? ' top' : '');
+      li.innerHTML = `
+        <div class="bar-header">
+          <span class="bar-name">${escHtml(p.class)}</span>
+          <span class="bar-pct">${pct}%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:0%" data-pct="${p.probability * 100}"></div>
+        </div>`;
+      barsList.appendChild(li);
+    });
+
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.bar-fill').forEach(el => {
+        el.style.width = parseFloat(el.dataset.pct) + '%';
+      });
+    });
+  }
+
+  function resetResults() {
+    emptyState.style.display = '';
+    topPred.style.display    = 'none';
+    barsList.innerHTML       = '';
+  }
+
+  // ── Error helpers ── //
+  function showError(msg) {
+    errorBox.textContent  = '⚠ ' + msg;
+    errorBox.style.display = 'block';
+  }
+  function hideError() {
+    errorBox.style.display = 'none';
+    errorBox.textContent   = '';
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+
+</body>
+</html>
