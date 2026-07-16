@@ -595,15 +595,32 @@
     }
 
     /* ── Responsive ─── */
+
+    /* Large tablets / small laptops (e.g. iPad Pro landscape, small desktop) */
+    @media (max-width: 1100px) {
+      #page-classifier main { max-width: 92%; }
+      #page-about { max-width: 92%; }
+    }
+
+    /* Tablets in portrait (iPad mini/Air/Pro ~768–834px) — stack classifier columns
+       before they get cramped, but keep disease grid / about-row intact since they
+       still have room at this width. */
+    @media (max-width: 900px) {
+      #page-classifier main { grid-template-columns: 1fr; gap: 20px; }
+    }
+
     @media (max-width: 860px) {
       .disease-grid { grid-template-columns: repeat(2, 1fr); }
       .disease-item:nth-child(4n) { border-right: 1px solid var(--border); }
       .disease-item:nth-child(2n) { border-right: none; }
       .disease-item:nth-last-child(-n+2) { border-bottom: none; }
       .disease-item:nth-last-child(-n+4):not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--border); }
+      .about-row { grid-template-columns: 1fr; }
     }
+
+    /* Small tablets / large phones landscape */
     @media (max-width: 720px) {
-      header { padding: 0 18px; }
+      header { padding: 0 18px; flex-wrap: wrap; }
       header h1 { font-size: 1.1rem; }
       .header-brand { padding: 16px 0; }
       .nav-tab { padding: 8px 13px; font-size: .8rem; }
@@ -614,11 +631,54 @@
       .hero-emoji { display: none; }
       .about-row { grid-template-columns: 1fr; }
     }
+
+    /* Phones */
     @media (max-width: 480px) {
       .disease-grid { grid-template-columns: 1fr; }
       .disease-item { border-right: none !important; }
       .disease-item:not(:last-child) { border-bottom: 1px solid var(--border) !important; }
-      footer { flex-direction: column; gap: 4px; }
+      footer { flex-direction: column; gap: 4px; padding: 16px 18px; }
+
+      header { padding: 0 14px; }
+      .header-brand { gap: 10px; padding: 14px 0; flex: 1 1 auto; }
+      .logo-wrap { width: 38px; height: 38px; font-size: 1.35rem; border-radius: 10px; }
+      header h1 { font-size: 1rem; }
+      header .subtitle { font-size: .68rem; }
+      nav { width: 100%; justify-content: stretch; }
+      .nav-tab { flex: 1; justify-content: center; padding: 9px 8px; font-size: .76rem; gap: 5px; }
+      .nav-tab .tab-icon { font-size: .88rem; }
+
+      .card { padding: 20px 18px; }
+      #drop-zone { min-height: 180px; padding: 16px; }
+      #drop-zone .icon { font-size: 2.1rem; }
+      #drop-zone .label { font-size: .82rem; }
+      .action-row { flex-direction: column; }
+      .action-row .btn { width: 100%; justify-content: center; }
+
+      #page-classifier main { padding: 0 14px; margin: 16px auto; gap: 16px; }
+      #page-about { padding: 0 14px 28px; margin: 18px auto; }
+
+      .about-hero { padding: 24px 20px; border-radius: 16px; }
+      .about-hero h2 { font-size: 1.5rem; }
+      .about-hero p { font-size: .85rem; max-width: 100%; }
+      .about-hero-badge { font-size: .66rem; padding: 3px 10px; }
+
+      .section-title h3, .disease-section-header h3, .info-card-header h3 { font-size: .95rem; }
+      .disease-item { padding: 16px 16px; }
+      .disease-section-header, .info-card-header { padding: 16px 18px 12px; }
+      .info-card-body { padding: 14px 16px; }
+
+      .taxonomy-table td { font-size: .8rem; padding: 7px 0; }
+      .taxonomy-table td:first-child { width: 42%; font-size: .72rem; }
+    }
+
+    /* Extra small phones (e.g. iPhone SE ~375px and below) */
+    @media (max-width: 380px) {
+      header h1 { font-size: .92rem; }
+      header .subtitle { display: none; }
+      .nav-tab { font-size: .72rem; padding: 8px 4px; }
+      .about-hero h2 { font-size: 1.3rem; }
+      #top-pred .disease { font-size: 1.05rem; }
     }
   </style>
 </head>
